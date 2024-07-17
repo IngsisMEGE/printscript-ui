@@ -6,6 +6,7 @@ import {TestCase} from "../types/TestCase.ts";
 import {FileType} from "../types/FileType.ts";
 import {Rule} from "../types/Rule.ts";
 import {RealSnippetOperations} from "./requests.ts";
+import {FakeSnippetOperations} from "./mock/fakeSnippetOperations";
 
 const snippetOperations: SnippetOperations = new RealSnippetOperations();
 

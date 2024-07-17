@@ -7,16 +7,6 @@ import {TestCaseResult} from "./queries.tsx";
 import {FileType} from "../types/FileType.ts";
 import {PaginatedUsers} from "./users.ts";
 
-interface SnippetViewDTO {
-    id: string
-    name: string;
-    content: string;
-    language: string;
-    extension: string;
-    compliance: ComplianceEnum;
-    author: string;
-}
-
 interface SnippetOutputDTO {
     id: number;
     name: string;
@@ -28,19 +18,6 @@ interface SnippetOutputDTO {
     extension: string;
 }
 
-interface UserDTO {
-    id: string;
-    name: string;
-}
-
-interface Page<T> {
-    content: T[];
-    totalPages: number;
-    totalElements: number;
-    size: number;
-    number: number;
-}
-
 export class RealSnippetOperations implements SnippetOperations {
     private readonly API_URL = 'http://20.197.251.215:8081/snippetManager';
     private axiosInstance: AxiosInstance;
@@ -48,6 +25,7 @@ export class RealSnippetOperations implements SnippetOperations {
 
     constructor() {
         const jwt = localStorage.getItem("jwt") ?? "";
+        console.log(jwt);
         this.axiosInstance = axios.create({
             baseURL: this.API_URL,
         });
@@ -60,27 +38,31 @@ export class RealSnippetOperations implements SnippetOperations {
 
     async listSnippetDescriptors(page: number, pageSize: number, snippetName?: string): Promise<PaginatedSnippets> {
         const url = `${this.API_URL}/search`;
-        const params = { page, pageSize, snippetName };
-        console.log(params);
-        try {
-            const response: AxiosResponse<{ data: SnippetViewDTO[] }> = await this.axiosInstance.post(url, params);
+        const params = { page, pageSize };
+        if (snippetName) {
+            params['snippetName'] = snippetName;
+        }
+         const response = await this.axiosInstance.post(url, {},{ params: params });
 
             return {
-                page: page,
+                page: response.data.pageable.pageNumber,
                 page_size: pageSize,
-                count: response.data.data.length,
-                snippets: response.data.data
+                count: response.data.content.length,
+                snippets: response.data.content
             };
-        } catch (error) {
-            console.error(`Error listing snippets:`, error);
-            throw error; // Re-throw the error to propagate it up to the caller
-        }
+
     }
 
     async createSnippet(createSnippet: CreateSnippet): Promise<Snippet> {
-        const url = `${this.API_URL}8081/snippetManager/create`;
+        const url = `${this.API_URL}/create`;
         try {
-            const response: AxiosResponse<SnippetOutputDTO> = await this.axiosInstance.post(url, createSnippet);
+
+            const response = await this.axiosInstance.post(url, {
+                name: createSnippet.name,
+                language: createSnippet.language,
+                code: createSnippet.content,
+                extension: createSnippet.extension
+            });
             return {
                 id: response.data.id.toString(),
                 name: response.data.name,
@@ -98,10 +80,9 @@ export class RealSnippetOperations implements SnippetOperations {
     }
 
     async getSnippetById(id: string): Promise<Snippet | undefined> {
-        const url = `${this.API_URL}8081/snippetManager/get/${id}`;
+        const url = `${this.API_URL}/get/${id}`;
         try {
             const response: AxiosResponse<SnippetOutputDTO> = await this.axiosInstance.get(url);
-            // Explicitly check for successful response status code (usually 200)
             if (response.status === 200) {
                 return {
                     name: response.data.name,
@@ -124,8 +105,8 @@ export class RealSnippetOperations implements SnippetOperations {
 
 
     async updateSnippetById(id: string, updateSnippet: UpdateSnippet): Promise<Snippet> {
-        const url = `${this.API_URL}8081/snippetManager/edit/${id}`;
-        const response: AxiosResponse<SnippetOutputDTO> = await this.axiosInstance.post(url, updateSnippet);
+        const url = `${this.API_URL}/edit/${id}`;
+        const response: AxiosResponse<SnippetOutputDTO> = await this.axiosInstance.post(url, {code: updateSnippet.content});
         return {
             name: response.data.name,
             content: response.data.code,
@@ -138,16 +119,16 @@ export class RealSnippetOperations implements SnippetOperations {
     }
 
     async getUserFriends(name?: string, page?: number, pageSize?: number): Promise<PaginatedUsers> {
-        const url = `${this.API_URL}8081/user/get`;
-        const response: AxiosResponse<Page<UserDTO>> = await this.axiosInstance.get(url, { params: {
+        const url = `http://20.197.251.215:8081/user/get`;
+        const response = await this.axiosInstance.get(url, { params: {
             page,
             size: pageSize,
             name
         }});
         return {
             users: response.data.content.map(user => ({
-                id: user.id,
-                name: user.name,
+                id: user.email,
+                name: user.nickname,
             })),
             page: response.data.number,
             page_size: response.data.size,
@@ -156,8 +137,8 @@ export class RealSnippetOperations implements SnippetOperations {
     }
 
     async shareSnippet(snippetId: string, userId: string): Promise<Snippet> {
-        const url = `${this.API_URL}8081/snippetManager/share/${snippetId}`;
-        const response: AxiosResponse<SnippetOutputDTO> = await this.axiosInstance.post(url, { shareEmail: userId });
+        const url = `${this.API_URL}/share/${snippetId}`;
+        const response: AxiosResponse<SnippetOutputDTO> = await this.axiosInstance.post(url, {}, { params: {shareEmail: userId}});
         return {
             name: response.data.name,
             content: response.data.code,
@@ -214,8 +195,9 @@ export class RealSnippetOperations implements SnippetOperations {
     }
 
     async deleteSnippet(id: string): Promise<string> {
-        const url = `${this.API_URL}8081/snippetManager/delete/${id}`;
-        const response: AxiosResponse<string> = await this.axiosInstance.post(url, {id: id});
+        const url = `${this.API_URL}/delete/${id}`;
+        const response: AxiosResponse<string> = await this.axiosInstance.delete(url);
+        console.log(response);
         return response.data
     }
 
@@ -228,9 +210,9 @@ export class RealSnippetOperations implements SnippetOperations {
     }
 
     async getFileTypes(): Promise<FileType[]> {
-        // Implementación específica dependiendo de cómo se manejen los tipos de archivos en tu API
-        // Este método debe ser implementado de acuerdo a la lógica de tu API
-        throw new Error("Method 'getFileTypes' must be implemented");
+        const url = `${this.API_URL}/fileTypes`;
+        const response = await this.axiosInstance.get(url);
+        return response.data
     }
 
     async modifyFormatRule(newRules: Rule[]): Promise<Rule[]> {

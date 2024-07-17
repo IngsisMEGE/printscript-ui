@@ -1,34 +1,34 @@
+import React, { useEffect } from "react";
 import { withAuthenticationRequired, useAuth0 } from "@auth0/auth0-react";
 import { Box, CircularProgress } from "@mui/material";
-import React, { useEffect } from "react";
 
 type Props = {
     component: React.ComponentType<object>;
 };
 
-export const AuthenticationGuard = ({ component: Component }: Props) => {
-    const { isAuthenticated, getIdTokenClaims, getAccessTokenSilently } = useAuth0();
+export const AuthenticationGuard = ({ component }: Props) => {
+    const { isAuthenticated, getIdTokenClaims } = useAuth0();
 
     useEffect(() => {
-        const saveTokenToLocalStorage = async () => {
+        const storeJwt = async () => {
             if (isAuthenticated) {
-                const token = await getAccessTokenSilently();
-                localStorage.setItem("jwt", token);
+                const token = await getIdTokenClaims();
+                if (token) {
+                    localStorage.setItem("jwt", token.__raw);
+                }
             }
         };
 
-        saveTokenToLocalStorage();
+        storeJwt();
     }, [isAuthenticated, getIdTokenClaims]);
 
-    return (
-        <Component />
-    );
-};
+    const Component = withAuthenticationRequired(component, {
+        onRedirecting: () => (
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100vh" }}>
+                <CircularProgress />
+            </Box>
+        ),
+    });
 
-export default withAuthenticationRequired(AuthenticationGuard, {
-    onRedirecting: () => (
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100vh" }}>
-            <CircularProgress />
-        </Box>
-    )
-});
+    return <Component />;
+};
