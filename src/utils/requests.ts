@@ -229,9 +229,9 @@ export class RealSnippetOperations implements SnippetOperations {
         return response.data
     }
 
-    async removeTestCase(id: string): Promise<string> {
-        const url = `${this.API_URL}8083/testManager/delete/${id}`;
-        const response: AxiosResponse<string> = await this.axiosInstance.post(url);
+    async removeTestCase(id: string, authorEmail: string): Promise<string> {
+        const url = `${this.API_URL}:8083/testManager/delete/${id}`;
+        const response: AxiosResponse<string> = await this.axiosInstance.delete(url, {params: {authorEmail: authorEmail}});
         return response.data
     }
 
