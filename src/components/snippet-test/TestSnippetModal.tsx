@@ -11,17 +11,20 @@ type TestSnippetModalProps = {
     onClose: () => void
 }
 
-export const TestSnippetModal = ({open, onClose}: TestSnippetModalProps) => {
+export const TestSnippetModal = ({open, onClose, id, author}: TestSnippetModalProps) => {
     const [value, setValue] = useState(0);
-
-    const {data: testCases} = useGetTestCases();
+    const {data: testCases} = useGetTestCases(id);
     const {mutateAsync: postTestCase} = usePostTestCase();
     const {mutateAsync: removeTestCase} = useRemoveTestCase({
         onSuccess: () => queryClient.invalidateQueries('testCases')
-    });
+    }, id, author);
 
     const handleChange = (_: SyntheticEvent, newValue: number) => {
         setValue(newValue);
+    };
+
+    const handleAddTestCase = async (tc) => {
+        await postTestCase({ ...tc, snippetId: Number(id), authorEmail: author });
     };
 
     return (
@@ -46,12 +49,12 @@ export const TestSnippetModal = ({open, onClose}: TestSnippetModalProps) => {
                 </Tabs>
                 {testCases?.map((testCase, index) => (
                     <TabPanel index={index} value={value} test={testCase}
-                              setTestCase={(tc) => postTestCase(tc)}
+                              setTestCase={handleAddTestCase}
                               removeTestCase={(i) => removeTestCase(i)}
                     />
                 ))}
                 <TabPanel index={(testCases?.length ?? 0) + 1} value={value}
-                          setTestCase={(tc) => postTestCase(tc)}
+                          setTestCase={handleAddTestCase}
                 />
             </Box>
         </ModalWrapper>

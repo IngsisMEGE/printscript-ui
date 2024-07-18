@@ -18,6 +18,21 @@ interface SnippetOutputDTO {
     extension: string;
 }
 
+function mapStringToComplianceEnum(input: string): ComplianceEnum | undefined {
+    switch (input.toUpperCase()) {
+        case 'PENDING':
+            return 'pending';
+        case 'FAILED':
+            return 'failed';
+        case 'NOT-COMPLIANT':
+            return 'not-compliant';
+        case 'COMPLIANT':
+            return 'compliant';
+        default:
+            return undefined;
+    }
+}
+
 export class RealSnippetOperations implements SnippetOperations {
     private readonly API_URL = 'http://20.197.251.215:8081/snippetManager';
     private axiosInstance: AxiosInstance;
@@ -25,7 +40,6 @@ export class RealSnippetOperations implements SnippetOperations {
 
     constructor() {
         const jwt = localStorage.getItem("jwt") ?? "";
-        console.log(jwt);
         this.axiosInstance = axios.create({
             baseURL: this.API_URL,
         });
@@ -48,7 +62,14 @@ export class RealSnippetOperations implements SnippetOperations {
                 page: response.data.pageable.pageNumber,
                 page_size: pageSize,
                 count: response.data.content.length,
-                snippets: response.data.content
+                snippets: response.data.content.map(snippet => ({
+                    id: snippet.id.toString(),
+                    name: snippet.name,
+                    language: snippet.language,
+                    author: snippet.author,
+                    compliance: mapStringToComplianceEnum(snippet.status)
+
+                })),
             };
 
     }
@@ -75,7 +96,7 @@ export class RealSnippetOperations implements SnippetOperations {
         }
         catch (error) {
             console.error(`Error listing snippets:`, error);
-            throw error; // Re-throw the error to propagate it up to the caller
+            throw error;
         }
     }
 
@@ -102,7 +123,6 @@ export class RealSnippetOperations implements SnippetOperations {
             return undefined;
         }
     }
-
 
     async updateSnippetById(id: string, updateSnippet: UpdateSnippet): Promise<Snippet> {
         const url = `${this.API_URL}/edit/${id}`;
@@ -162,10 +182,18 @@ export class RealSnippetOperations implements SnippetOperations {
         return rulesFormatResponse.data
     }
 
-    async getTestCases(): Promise<TestCase[]> {
-        // Implementación específica dependiendo de cómo se manejen los casos de prueba en tu API
-        // Este método debe ser implementado de acuerdo a la lógica de tu API
-        throw new Error("Method 'getTestCases' must be implemented");
+    async getTestCases(id: number): Promise<TestCase[]> {
+        const url = `http://20.197.251.215:8083/testManager/get/${id}`;
+        const response = await this.axiosInstance.get(url);
+        return response.data.map((testCase: any) => ({
+            snippetId: testCase.snippetId,
+            author: testCase.author,
+            id: testCase.id,
+            name: testCase.name,
+            input: testCase.inputs,
+            output: testCase.outputs,
+            envVars: testCase.envs
+        }));
     }
 
     async formatSnippet(snippet: string): Promise<string> {
@@ -183,8 +211,17 @@ export class RealSnippetOperations implements SnippetOperations {
     }
 
     async postTestCase(testCase: Partial<TestCase>): Promise<TestCase> {
-        const url = `${this.API_URL}8083/testManager/save}`;
-        const response: AxiosResponse<TestCase> = await this.axiosInstance.post(url, testCase);
+        console.log(testCase.id);
+        const url = `http://20.197.251.215:8083/testManager/save`;
+        const response: AxiosResponse<TestCase> = await this.axiosInstance.post(url, {
+            snippetId: testCase.snippetId,
+            authorEmail: testCase.authorEmail,
+            testId: testCase.id,
+            name: testCase.name,
+            inputs: testCase.input,
+            outputs: testCase.output,
+            envs: testCase.envVars
+        });
         return response.data
     }
 
@@ -197,7 +234,6 @@ export class RealSnippetOperations implements SnippetOperations {
     async deleteSnippet(id: string): Promise<string> {
         const url = `${this.API_URL}/delete/${id}`;
         const response: AxiosResponse<string> = await this.axiosInstance.delete(url);
-        console.log(response);
         return response.data
     }
 
