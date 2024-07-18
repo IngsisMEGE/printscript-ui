@@ -2,29 +2,59 @@ import {OutlinedInput} from "@mui/material";
 import {highlight, languages} from "prismjs";
 import Editor from "react-simple-code-editor";
 import {Bòx} from "../components/snippet-table/SnippetBox.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import {executionRequests} from "../utils/executionRequests";
 
-export const SnippetExecution = () => {
-  // Here you should provide all the logic to connect to your sockets.
-  const [input, setInput] = useState<string>("")
-  const [output, setOutput] = useState<string[]>([]);
+type SnippetExecutionProps = {
+    id: string;
+    setRunSnippet: (isRunning: boolean) => void;
+    runSnippet: boolean;
+};
 
-  //TODO: get the output from the server
-  const code = output.join("\n")
+export const SnippetExecution = ({ id, setRunSnippet, runSnippet }: SnippetExecutionProps) => {
+  const [input, setInput] = useState<string>("");
+  const [inputList, setInputList] = useState<string[]>([]);
+  const [output, setOutput] = useState<string>("");
+  const execution = new executionRequests();
+  console.log(runSnippet);
+
+  useEffect(() => {
+    if (runSnippet) {
+        setOutput("");
+          execute();
+      } else {
+        setInputList([]);
+      }
+  },[runSnippet]);
 
   const handleEnter = (event: { key: string }) => {
     if (event.key === 'Enter') {
-      //TODO: logic to send inputs to server
-      setOutput([...output, input])
-      setInput("")
+        setInputList(prevInputs => [...prevInputs, input]);
+        execute();
     }
   };
 
+  const execute = () => {
+      execution.executeSnippet(id, inputList).then(response => {
+          const snippetResponse = response.data;
+          setOutput(snippetResponse.output);
+          if (!snippetResponse.doesItNeedInput){
+              setInputList([]);
+              setRunSnippet(false);
+          }
+      }).catch(error => {
+          setOutput("se rompio todo xd");
+          setRunSnippet(false);
+      });
+
+      setInput("");
+  }
+
     return (
       <>
-        <Bòx flex={1} overflow={"none"} minHeight={200} bgcolor={'black'} color={'white'} code={code}>
+        <Bòx flex={1} overflow={"none"} minHeight={200} bgcolor={'black'} color={'white'} code={output}>
             <Editor
-              value={code}
+              value={output}
               padding={10}
               onValueChange={(code) => setInput(code)}
               highlight={(code) => highlight(code, languages.js, 'javascript')}
