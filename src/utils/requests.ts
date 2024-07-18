@@ -216,7 +216,7 @@ export class RealSnippetOperations implements SnippetOperations {
 
     async postTestCase(testCase: Partial<TestCase>): Promise<TestCase> {
         const url = `${this.API_URL}:8083/testManager/save`;
-        const response: AxiosResponse<TestCase> = await this.axiosInstance.post(url, {
+        const response = await this.axiosInstance.post(url, {
             snippetId: testCase.snippetId,
             authorEmail: testCase.authorEmail,
             testId: testCase.id,
