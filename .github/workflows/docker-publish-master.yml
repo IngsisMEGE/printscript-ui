@@ -56,3 +56,15 @@ jobs:
           tags: |
             ghcr.io/ingsismege/printscriptui:latest
             ghcr.io/ingsismege/printscriptui:${{ env.VERSION }}
+
+      - name: Update dev server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST_PROD }}
+          username: ${{ secrets.USER_PROD }}
+          key: ${{ secrets.KEY_PROD }}
+          script: |
+            cd INFRAingsis/prod/
+            docker compose -f docker-compose.prod.yml stop printscriptui
+            docker compose -f docker-compose.prod.yml pull printscriptui
+            docker compose -f docker-compose.prod.yml up printscriptui -d --build
