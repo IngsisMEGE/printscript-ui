@@ -15,6 +15,7 @@ createRoot(document.getElementById('root')!).render(
             domain={domain}
             clientId={clientId}
             authorizationParams={{
+                audience: 'https://snippetmanager/',
                 redirect_uri: window.location.origin
             }}>
             <PaginationProvider>
