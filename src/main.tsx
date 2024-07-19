@@ -9,7 +9,7 @@ import {Auth0Provider} from "@auth0/auth0-react";
 createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <Auth0Provider
-            domain="dev-0et3cewhpj5hltwn.us.auth0.com"
+            domain="https://dev-0et3cewhpj5hltwn.us.auth0.com"
             clientId="V6BK3ekUR9rH9aV39lkSYRWBhEWgR2kQ"
             authorizationParams={{
                 audience: 'https://snippetmanager/',
