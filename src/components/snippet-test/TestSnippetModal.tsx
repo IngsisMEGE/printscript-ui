@@ -5,23 +5,33 @@ import {AddRounded} from "@mui/icons-material";
 import {useGetTestCases, usePostTestCase, useRemoveTestCase} from "../../utils/queries.tsx";
 import {TabPanel} from "./TabPanel.tsx";
 import {queryClient} from "../../App.tsx";
+import {TestCase} from "../../types/TestCase";
 
 type TestSnippetModalProps = {
     open: boolean
     onClose: () => void
+    id: number
+    author: string
 }
 
-export const TestSnippetModal = ({open, onClose}: TestSnippetModalProps) => {
+export const TestSnippetModal = ({open, onClose, id, author}: TestSnippetModalProps) => {
     const [value, setValue] = useState(0);
-
-    const {data: testCases} = useGetTestCases();
+    const {data: testCases} = useGetTestCases(id);
     const {mutateAsync: postTestCase} = usePostTestCase();
     const {mutateAsync: removeTestCase} = useRemoveTestCase({
         onSuccess: () => queryClient.invalidateQueries('testCases')
-    });
+    }, id.toString(), author);
 
     const handleChange = (_: SyntheticEvent, newValue: number) => {
         setValue(newValue);
+    };
+
+    const handlePostTestCase = (tc: Partial<TestCase>) => {
+        postTestCase({
+            ...tc,
+            snippetId: id.toString(),
+            authorEmail: author
+        });
     };
 
     return (
@@ -51,7 +61,7 @@ export const TestSnippetModal = ({open, onClose}: TestSnippetModalProps) => {
                     />
                 ))}
                 <TabPanel index={(testCases?.length ?? 0) + 1} value={value}
-                          setTestCase={(tc) => postTestCase(tc)}
+                          setTestCase={(tc) => handlePostTestCase(tc)}
                 />
             </Box>
         </ModalWrapper>
