@@ -47,7 +47,7 @@ function mapStringToComplianceEnum(input: string): ComplianceEnum | undefined {
 }
 
 export class RealSnippetOperations implements SnippetOperations {
-    private readonly API_URL = 'https://apolocoders.com/';
+    private readonly API_URL = 'https://apolocoders.com';
     private axiosInstance: AxiosInstance;
 
     constructor() {
