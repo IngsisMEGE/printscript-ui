@@ -5,10 +5,13 @@ import {AddRounded} from "@mui/icons-material";
 import {useGetTestCases, usePostTestCase, useRemoveTestCase} from "../../utils/queries.tsx";
 import {TabPanel} from "./TabPanel.tsx";
 import {queryClient} from "../../App.tsx";
+import {TestCase} from "../../types/TestCase";
 
 type TestSnippetModalProps = {
     open: boolean
     onClose: () => void
+    id: number
+    author: string
 }
 
 export const TestSnippetModal = ({open, onClose, id, author}: TestSnippetModalProps) => {
@@ -17,14 +20,18 @@ export const TestSnippetModal = ({open, onClose, id, author}: TestSnippetModalPr
     const {mutateAsync: postTestCase} = usePostTestCase();
     const {mutateAsync: removeTestCase} = useRemoveTestCase({
         onSuccess: () => queryClient.invalidateQueries('testCases')
-    }, id, author);
+    }, id.toString(), author);
 
     const handleChange = (_: SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
 
-    const handleAddTestCase = async (tc) => {
-        await postTestCase({ ...tc, snippetId: Number(id), authorEmail: author });
+    const handlePostTestCase = (tc: Partial<TestCase>) => {
+        postTestCase({
+            ...tc,
+            snippetId: id.toString(),
+            authorEmail: author
+        });
     };
 
     return (
@@ -49,12 +56,12 @@ export const TestSnippetModal = ({open, onClose, id, author}: TestSnippetModalPr
                 </Tabs>
                 {testCases?.map((testCase, index) => (
                     <TabPanel index={index} value={value} test={testCase}
-                              setTestCase={handleAddTestCase}
+                              setTestCase={(tc) => postTestCase(tc)}
                               removeTestCase={(i) => removeTestCase(i)}
                     />
                 ))}
                 <TabPanel index={(testCases?.length ?? 0) + 1} value={value}
-                          setTestCase={handleAddTestCase}
+                          setTestCase={(tc) => handlePostTestCase(tc)}
                 />
             </Box>
         </ModalWrapper>

@@ -1,11 +1,18 @@
 import axios, {AxiosInstance} from 'axios';
 
+export type Language =
+    "Printscript" |
+    "Java"|
+    "Python"|
+    "Go"
+
+
 export class executionRequests {
     private axiosInstance: AxiosInstance;
 
     constructor() {
         this.axiosInstance = axios.create({
-            baseURL: 'http://20.197.251.215:8085',
+            baseURL: 'http://20.197.251.215',
         });
 
         const jwt = localStorage.getItem("jwt") ?? "";
@@ -16,9 +23,9 @@ export class executionRequests {
         });
     }
 
-    async executeSnippet(id: string, inputs: string[]) {
+    async executeSnippet(id: string, inputs: string[], language: string) {
         const url = `/execute/live`;
-        return await this.axiosInstance.post(url, {id, inputs});
+        return await this.axiosInstance.post(url, {language, id, inputs});
     }
 }
 

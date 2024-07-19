@@ -9,14 +9,14 @@ type SnippetExecutionProps = {
     id: string;
     setRunSnippet: (isRunning: boolean) => void;
     runSnippet: boolean;
+    language: string;
 };
 
-export const SnippetExecution = ({ id, setRunSnippet, runSnippet }: SnippetExecutionProps) => {
+export const SnippetExecution = ({ id, setRunSnippet, runSnippet, language }: SnippetExecutionProps) => {
   const [input, setInput] = useState<string>("");
   const [inputList, setInputList] = useState<string[]>([]);
   const [output, setOutput] = useState<string>("");
   const execution = new executionRequests();
-  console.log(runSnippet);
 
   useEffect(() => {
     if (runSnippet) {
@@ -35,7 +35,7 @@ export const SnippetExecution = ({ id, setRunSnippet, runSnippet }: SnippetExecu
   };
 
   const execute = () => {
-      execution.executeSnippet(id, inputList).then(response => {
+      execution.executeSnippet(id, inputList, language).then(response => {
           const snippetResponse = response.data;
           setOutput(snippetResponse.output);
           if (!snippetResponse.doesItNeedInput){
@@ -43,7 +43,7 @@ export const SnippetExecution = ({ id, setRunSnippet, runSnippet }: SnippetExecu
               setRunSnippet(false);
           }
       }).catch(error => {
-          setOutput("se rompio todo xd");
+          setOutput(error.response.data.output);
           setRunSnippet(false);
       });
 

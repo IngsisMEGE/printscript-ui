@@ -6,7 +6,6 @@ import {TestCase} from "../types/TestCase.ts";
 import {FileType} from "../types/FileType.ts";
 import {Rule} from "../types/Rule.ts";
 import {RealSnippetOperations} from "./requests.ts";
-import {FakeSnippetOperations} from "./mock/fakeSnippetOperations";
 
 const snippetOperations: SnippetOperations = new RealSnippetOperations();
 
@@ -53,7 +52,7 @@ export const useGetTestCases = (id: number) => {
 
 export const usePostTestCase = () => {
   return useMutation<TestCase, Error, Partial<TestCase>>(
-      (tc) => {snippetOperations.postTestCase(tc)}
+      (tc: Partial<TestCase>) => snippetOperations.postTestCase(tc)
   );
 };
 
@@ -61,9 +60,7 @@ export const usePostTestCase = () => {
 export const useRemoveTestCase = ({onSuccess}: {onSuccess: () => void}, id: string, authorEmail: string) => {
   return useMutation<string, Error, string>(
       ['removeTestCase', id, authorEmail],
-      (tc) => {
-        snippetOperations.removeTestCase(tc.toString(), authorEmail);
-      },
+      (tc) => snippetOperations.removeTestCase(tc.toString(), authorEmail),
       {
         onSuccess,
       }
