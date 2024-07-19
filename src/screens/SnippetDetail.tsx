@@ -57,8 +57,10 @@ export const SnippetDetail = (props: SnippetDetailProps) => {
   const [deleteConfirmationModalOpen, setDeleteConfirmationModalOpen] = useState(false)
   const [testModalOpened, setTestModalOpened] = useState(false);
   const [runSnippet, setRunSnippet] = useState(false);
+  const [language, setLanguage] = useState("");
 
   const {data: snippet, isLoading} = useGetSnippetById(id);
+
   const {mutate: shareSnippet, isLoading: loadingShare} = useShareSnippet()
   const {mutate: formatSnippet, isLoading: isFormatLoading, data: formatSnippetData} = useFormatSnippet()
   const {mutate: updateSnippet, isLoading: isUpdateSnippetLoading} = useUpdateSnippetById({onSuccess: () => queryClient.invalidateQueries(['snippet', id])})
@@ -66,6 +68,7 @@ export const SnippetDetail = (props: SnippetDetailProps) => {
   useEffect(() => {
     if (snippet) {
       setCode(snippet.content);
+      setLanguage(snippet.language);
     }
   }, [snippet]);
 
@@ -142,14 +145,14 @@ export const SnippetDetail = (props: SnippetDetailProps) => {
             </Box>
             <Box pt={1} flex={1} marginTop={2}>
               <Alert severity="info">Output</Alert>
-              <SnippetExecution />
+              <SnippetExecution id={id} setRunSnippet={setRunSnippet} runSnippet={runSnippet} language={language}/>
             </Box>
           </>
         }
         <ShareSnippetModal loading={loadingShare || isLoading} open={shareModalOppened}
                            onClose={() => setShareModalOppened(false)}
                            onShare={handleShareSnippet}/>
-        <TestSnippetModal open={testModalOpened} onClose={() => setTestModalOpened(false)}/>
+        <TestSnippetModal open={testModalOpened} onClose={() => setTestModalOpened(false)} id={Number(id)} author={snippet?.author ?? ""}/>
         <DeleteConfirmationModal open={deleteConfirmationModalOpen} onClose={() => setDeleteConfirmationModalOpen(false)} id={snippet?.id ?? ""} setCloseDetails={handleCloseModal} />
       </Box>
   );
