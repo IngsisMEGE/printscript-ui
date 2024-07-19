@@ -8,7 +8,7 @@ permissions:
 on:
   push:
     branches:
-      - master
+      - dev
   workflow_dispatch:
 
 jobs:
@@ -54,17 +54,17 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/ingsismege/printscriptui:latest
-            ghcr.io/ingsismege/printscriptui:${{ env.VERSION }}
-
+            ghcr.io/ingsismege/printscriptui:latest.SNAPSHOT
+            ghcr.io/ingsismege/printscriptui:${{ env.VERSION }}.SNAPSHOT
+            
       - name: Update dev server
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.HOST_PROD }}
-          username: ${{ secrets.USER_PROD }}
-          key: ${{ secrets.KEY_PROD }}
+          host: ${{ secrets.HOST_DEV }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.KEY_DEV }}
           script: |
-            cd INFRAingsis/prod/
-            docker compose -f docker-compose.prod.yml stop printscriptui
-            docker compose -f docker-compose.prod.yml pull printscriptui
-            docker compose -f docker-compose.prod.yml up printscriptui -d --build
+            cd INFRAingsis/dev/
+            docker compose -f docker-compose.dev.yml stop printscriptui
+            docker compose -f docker-compose.dev.yml pull printscriptui
+            docker compose -f docker-compose.dev.yml up printscriptui -d --build
