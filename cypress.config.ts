@@ -11,5 +11,6 @@ export default defineConfig({
     },
     experimentalStudio: true,
     baseUrl: FRONTEND_URL,
+    enableMagicWand: true,
   },
 });

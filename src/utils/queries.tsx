@@ -52,7 +52,10 @@ export const useGetTestCases = (id: number) => {
 
 export const usePostTestCase = () => {
   return useMutation<TestCase, Error, Partial<TestCase>>(
-      (tc: Partial<TestCase>) => snippetOperations.postTestCase(tc)
+      (tc: Partial<TestCase>) => {
+        console.log(tc);
+        snippetOperations.postTestCase(tc);
+      }
   );
 };
 

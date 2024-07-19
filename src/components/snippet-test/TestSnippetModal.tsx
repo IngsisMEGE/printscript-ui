@@ -30,7 +30,7 @@ export const TestSnippetModal = ({open, onClose, id, author}: TestSnippetModalPr
         postTestCase({
             ...tc,
             snippetId: id.toString(),
-            authorEmail: author
+            authorEmail: author,
         });
     };
 
@@ -56,7 +56,7 @@ export const TestSnippetModal = ({open, onClose, id, author}: TestSnippetModalPr
                 </Tabs>
                 {testCases?.map((testCase, index) => (
                     <TabPanel index={index} value={value} test={testCase}
-                              setTestCase={(tc) => postTestCase(tc)}
+                              setTestCase={(tc) => handlePostTestCase(tc)}
                               removeTestCase={(i) => removeTestCase(i)}
                     />
                 ))}

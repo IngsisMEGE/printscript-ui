@@ -46,6 +46,20 @@ function mapStringToComplianceEnum(input: string): ComplianceEnum | undefined {
     }
 }
 
+const parseEnvsToMap = (envs?: string) =>
+    new Map(
+        (envs ? envs.split(";") : []).map(env => {
+            const [key, value] = env.split("=");
+            return [key, value] as [string, string];
+        })
+    );
+
+const hasPass = (received?: string, expected?: string[]) => {
+    const resultExpected = expected?.join('\n');
+    return received === resultExpected+"\n" ? "success" : "fail";
+}
+
+
 export class RealSnippetOperations implements SnippetOperations {
     private readonly API_URL = 'http://20.197.251.215';
     private axiosInstance: AxiosInstance;
@@ -186,7 +200,7 @@ export class RealSnippetOperations implements SnippetOperations {
     }
 
     async getLintingRules(): Promise<Rule[]> {
-        const rulesFormatUrl = `${this.API_URL}/rules/user/lint/get`;
+        const rulesFormatUrl = `${this.API_URL}/rules/user/sca/get`;
         const rulesFormatResponse:AxiosResponse<Rule[]> = await this.axiosInstance.get(rulesFormatUrl);
         return rulesFormatResponse.data
     }
@@ -206,21 +220,17 @@ export class RealSnippetOperations implements SnippetOperations {
     }
 
     async formatSnippet(snippet: string): Promise<string> {
-        const rulesFormatUrl = `${this.API_URL}/ruleManager/rules/get/user/format`;
-        const rulesLintUrl = `${this.API_URL}/ruleManager/rules/get/user/lint`;
-        const rulesFormatResponse = await this.axiosInstance.get(rulesFormatUrl);
-        const rulesLintResponse = await this.axiosInstance.get(rulesLintUrl);
-        const url = `${this.API_URL}/snippetManager/snippetManager/format/withRules`;
+        const url = `${this.API_URL}/format/snippet`;
         const response: AxiosResponse<string> = await this.axiosInstance.post(url, {
-            snippetId: snippet,
-            formatRules: rulesFormatResponse.data,
-            lintingRules: rulesLintResponse.data
+            snippet: snippet,
+            language: "Printscript",
         });
         return response.data;
     }
 
     async postTestCase(testCase: Partial<TestCase>): Promise<TestCase> {
         const url = `${this.API_URL}/testManager/save`;
+        console.log(testCase);
         const response = await this.axiosInstance.post(url, {
             snippetId: testCase.snippetId,
             authorEmail: testCase.authorEmail,
@@ -247,11 +257,10 @@ export class RealSnippetOperations implements SnippetOperations {
     }
 
     async testSnippet(testCase: Partial<TestCase>): Promise<TestCaseResult> {
-        if (testCase){
-            return "success"
-        }else {
-            return "fail"
-        }
+        const url = `${this.API_URL}/execute/test`;
+        const response = await this.axiosInstance.post(url, {language: "Printscript", snippetId: testCase.snippetId, inputs: testCase.input, envs: parseEnvsToMap(testCase.envVars)});
+        console.log(hasPass(response.data, testCase.output));
+        return hasPass(response.data, testCase.output);
     }
 
     async getFileTypes(): Promise<FileType[]> {
