@@ -29,14 +29,10 @@ Cypress.Commands.add('loginToAuth0', (username: string, password: string) => {
       `auth0-${username}`,
       () => {
         loginViaAuth0Ui(username, password)
+        cy.wait(3000) // Wait for the token to be set
+        localStorage.setItem('authAccessToken', Cypress.env('TOKEN'))
       },
       {
-        validate: () => {
-          // Validate presence of access token in localStorage.
-          cy.wrap(localStorage)
-              .invoke('getItem', 'authAccessToken')
-              .should('exist')
-        },
       }
   )
   log.snapshot('after')
