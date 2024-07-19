@@ -1,6 +1,6 @@
 FROM node:20-slim AS build
 
-WORKDIR /printscript-ui
+WORKDIR /app
 
 COPY package.json /app/package.json
 COPY package-lock.json /app/package-lock.json
@@ -25,12 +25,12 @@ RUN npm run build
 
 FROM nginx:alpine
 
-COPY --from=build /printscript-ui/.nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/.nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 WORKDIR /usr/share/nginx/html
 
 RUN rm -rf ./*
 
-COPY --from=build /printscript-ui/dist .
+COPY --from=build /app/dist .
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
