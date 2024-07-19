@@ -25,7 +25,7 @@ export class executionRequests {
 
     async executeSnippet(id: string, inputs: string[], language: string) {
         const url = `/execute/live`;
-        return await this.axiosInstance.post(url, {language, id, inputs});
+        return await this.axiosInstance.post(url, {snippetId: id, inputs, language});
     }
 }
 

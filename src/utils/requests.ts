@@ -180,13 +180,13 @@ export class RealSnippetOperations implements SnippetOperations {
     }
 
     async getFormatRules(): Promise<Rule[]> {
-        const rulesFormatUrl = `${this.API_URL}/ruleManager/rules/get/user/format`;
+        const rulesFormatUrl = `${this.API_URL}/rules/user/format/get`;
         const rulesFormatResponse:AxiosResponse<Rule[]> = await this.axiosInstance.get(rulesFormatUrl);
         return rulesFormatResponse.data
     }
 
     async getLintingRules(): Promise<Rule[]> {
-        const rulesFormatUrl = `${this.API_URL}/ruleManager/rules/get/user/lint`;
+        const rulesFormatUrl = `${this.API_URL}/rules/user/lint/get`;
         const rulesFormatResponse:AxiosResponse<Rule[]> = await this.axiosInstance.get(rulesFormatUrl);
         return rulesFormatResponse.data
     }

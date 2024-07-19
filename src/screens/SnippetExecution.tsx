@@ -16,21 +16,29 @@ export const SnippetExecution = ({ id, setRunSnippet, runSnippet, language }: Sn
   const [input, setInput] = useState<string>("");
   const [inputList, setInputList] = useState<string[]>([]);
   const [output, setOutput] = useState<string>("");
-  const execution = new executionRequests();
+    const [hasInputListChanged, setHasInputListChanged] = useState<boolean>(false);
+    const execution = new executionRequests();
 
   useEffect(() => {
     if (runSnippet) {
         setOutput("");
           execute();
-      } else {
+    } else {
         setInputList([]);
       }
   },[runSnippet]);
 
+    useEffect(() => {
+        if (hasInputListChanged) {
+            execute();
+            setHasInputListChanged(false);
+        }
+    }, [inputList]);
+
   const handleEnter = (event: { key: string }) => {
     if (event.key === 'Enter') {
         setInputList(prevInputs => [...prevInputs, input]);
-        execute();
+        setHasInputListChanged(true);
     }
   };
 
@@ -46,7 +54,7 @@ export const SnippetExecution = ({ id, setRunSnippet, runSnippet, language }: Sn
           setOutput(error.response.data.output);
           setRunSnippet(false);
       });
-
+      setHasInputListChanged(false);
       setInput("");
   }
 
