@@ -15,7 +15,7 @@ createRoot(document.getElementById('root')!).render(
             domain={domain}
             clientId={clientId}
             authorizationParams={{
-                redirect_uri: 'https://apolocoders.com'
+                redirect_uri: window.location.origin
             }}>
             <PaginationProvider>
                 <SnackbarProvider>
